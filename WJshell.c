@@ -14,7 +14,6 @@ void print_prompt () {
 	user=getpwuid(getuid());
 	printf("%s@WJShell:$ ",user->pw_name);
 }
-//test
 
 int main () {
 	char s[300];
