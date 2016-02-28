@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,7 +36,24 @@ int main () {
 			int pid=fork();
 			if (pid==0) {
 				//child process
-				dup2(pre_pipein,0); //change the stdin
+				dup2(pre_pipein,0); //change the stdin to accept data from previous process
+				if (i==0 && command.stdin_redirect!=NULL) {
+					close(0);
+					int fd=open(command.stdin_redirect,O_RDONLY);
+					if (fd<0) {
+						perror(command.stdin_redirect);
+						exit(1);	
+					}
+				}
+				if (i==command.num_sub_commands-1 && command.stdout_redirect!=NULL) {
+					close(1);
+					int fd=open(command.stdout_redirect, O_WRONLY|O_CREAT,0660);
+					if (fd<0) {
+						perror(command.stdout_redirect);
+						exit(1);
+					}
+				}
+
 				if (i!=command.num_sub_commands-1) {
 					dup2(fds[1],1);
 				}
