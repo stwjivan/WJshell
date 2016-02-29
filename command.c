@@ -41,8 +41,38 @@ void ReadCommand(char *line, struct Command *command) {
     int j;
     for(j=0;j<command->num_sub_commands;j++) {
         ReadArgs(command->sub_commands[j].line, command->sub_commands[j].argv, MAX_ARGS);
+        //command->sub_commands[j].hasPrefix=0;
+        //ReadPrefix(&(command->sub_commands[j]));
     }
 }
+
+// void ReadPrefix(struct SubCommand *subcommand) {
+// 	int i=0;
+// 	int j=0;
+// 	//find if there is a '=' in argv[i] && argv[i]!=NULL
+// 	while (subcommand->argv[i]!=NULL && strchr(subcommand->argv[i],'=')!=NULL) {
+// 		if (*(subcommand->argv[i])!='=') {
+// 			subcommand->prefix[j]=strdup(subcommand->argv[i]);
+// 			j++;
+// 		}
+// 		i++;
+// 	}
+// 	subcommand->prefix[j]=NULL;
+// 	if (i==0) {
+// 		//no prefix exists
+// 		subcommand->hasPrefix=0;
+// 	} else {
+// 		//shift non-prefix argvs to the head
+// 		subcommand->hasPrefix=1;
+// 		int m=0;
+// 		while (subcommand->argv[i]!=NULL) {
+// 			subcommand->argv[m]=subcommand->argv[i];
+// 			m++;
+// 			i++;
+// 		}
+// 	subcommand->argv[m]=NULL;
+// 	}
+// }
 
 void ReadRedirectAndBackground(struct Command *command) {
 	//set new fields to default value;

@@ -6,6 +6,8 @@
 struct SubCommand {
     char *line;
     char *argv[MAX_ARGS];
+    //char *prefix[MAX_ARGS-1];
+    int hasPrefix;
 };
 
 struct Command {

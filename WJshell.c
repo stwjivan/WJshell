@@ -22,19 +22,20 @@ void print_prompt () {
 
 int main () {
 	char s[300];
+	struct Command command;
 	while (1) {
 		print_prompt();
 		fgets(s,sizeof s, stdin);
 		if (strcmp(s,"\n")==0) {
 			continue; //if there is no input,skip reading command
 		}
-		struct Command command;
 		ReadCommand(s,&command);
 		ReadRedirectAndBackground(&command);
 		int i;
 		int fds[2];
 		int pre_pipein=0;
 		for (i=0;i<command.num_sub_commands;i++) {
+			//check if the command is built-in command
 			if (strcmp(command.sub_commands[i].argv[0],"cd")==0) {
 				int err=chdir(command.sub_commands[i].argv[1]);
 				if (err <0) perror("cd");
