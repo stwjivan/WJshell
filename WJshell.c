@@ -48,9 +48,26 @@ int main () {
 			int pid=fork();
 			if (pid==0) {
 				//child process
-				dup2(pre_pipein,0); //change the stdin to accept data from previous process
-				if (i==0 && command.stdin_redirect!=NULL) { 
-					//implement redirect-in, only the first command need to redirect
+				if (command.sub_commands[i].hasPrefix==1) {
+					int j=0;
+					while(command.sub_commands[i].prefix[j]!=NULL) {
+						int err=putenv(command.sub_commands[i].prefix[j]);
+						if (err!=0) {
+							perror("putenv");
+							exit(1);
+						}
+						j++;
+					}
+				}
+				if (command.num_sub_commands>1) {         //pipe operation, if there are more than one command
+					dup2(pre_pipein,0);                   //change the stdin to accept data from previous process
+					close(fds[0]);                        //close the unused pipe port
+					if (i!=command.num_sub_commands-1) {  //except the last subcommand, change the stdout
+					dup2(fds[1],1);
+					}
+				}
+				//implement redirect-in, only the first command need to redirect
+				if (i==0 && command.stdin_redirect!=NULL) { 	
 					close(0);
 					int fd=open(command.stdin_redirect,O_RDONLY);
 					if (fd<0) {
@@ -63,8 +80,8 @@ int main () {
 						}	
 					}
 				}
-				if (i==command.num_sub_commands-1 && command.stdout_redirect!=NULL) { 
-					//implement redirect-out, only the last subcommand need to redirect
+				//implement redirect-out, only the last subcommand need to redirect
+				if (i==command.num_sub_commands-1 && command.stdout_redirect!=NULL) { 		
 					close(1);
 					int fd=open(command.stdout_redirect, O_WRONLY|O_CREAT,0660);
 					if (fd<0) {
@@ -77,10 +94,7 @@ int main () {
 						}
 					}
 				}
-				if (i!=command.num_sub_commands-1) {
-					dup2(fds[1],1);
-				}
-				close(fds[0]);
+				//execution of the subcommand
 				if(execvp(command.sub_commands[i].argv[0],command.sub_commands[i].argv)<0) {
 					if (errno==ENOENT) {
 						fprintf(stderr, "%s : Command not found\n", command.sub_commands[i].argv[0]);
@@ -90,10 +104,12 @@ int main () {
 				}
 			} else {
 				//parent process
-				//close the unused pipe port
-				close(fds[1]);
-				//save the pipe input for next fork
-				pre_pipein=fds[0];
+				if (command.num_sub_commands>1) {
+					//close the unused pipe port
+					close(fds[1]);
+					//save the pipe input for next fork
+					pre_pipein=fds[0];	
+				}	
 				//print the pid if running in the background
 				if(command.background==1 && i==command.num_sub_commands-1) {
 					printf("[%d]\n", pid);					
@@ -101,7 +117,7 @@ int main () {
 			}
 		}
 		if (command.background==0) {
-			//if not running in the background, wait for all childs
+		//if not running in the background, wait for all childs
 			while(wait(NULL)>0);
 		}
 	} 

@@ -8,9 +8,8 @@
 void ReadArgs(char *in, char **argv, int size) {
     char * dup_in;
     dup_in=strdup(in);
-    //char *dilm=" \n"; //two dilms: space & \n
     char *p;
-    p=strtok(dup_in," \n");
+    p=strtok(dup_in," \n"); //two dilms: space & \n
     int i=0;
     while(p!=NULL&&i<size-1) {
         argv[i]=p;
@@ -27,7 +26,6 @@ void ReadCommand(char *line, struct Command *command) {
     dup_line[strlen(dup_line)-1]='\0';
     //split the line into subcommands
     char *p;
-    //char *dilm="|";
     p=strtok(dup_line,"|");
     int i=0;
     while (p!=NULL&&i<MAX_SUB_COMMANDS) {
@@ -41,38 +39,31 @@ void ReadCommand(char *line, struct Command *command) {
     int j;
     for(j=0;j<command->num_sub_commands;j++) {
         ReadArgs(command->sub_commands[j].line, command->sub_commands[j].argv, MAX_ARGS);
-        //command->sub_commands[j].hasPrefix=0;
-        //ReadPrefix(&(command->sub_commands[j]));
+        ReadPrefix(&(command->sub_commands[j]));
     }
 }
 
-// void ReadPrefix(struct SubCommand *subcommand) {
-// 	int i=0;
-// 	int j=0;
-// 	//find if there is a '=' in argv[i] && argv[i]!=NULL
-// 	while (subcommand->argv[i]!=NULL && strchr(subcommand->argv[i],'=')!=NULL) {
-// 		if (*(subcommand->argv[i])!='=') {
-// 			subcommand->prefix[j]=strdup(subcommand->argv[i]);
-// 			j++;
-// 		}
-// 		i++;
-// 	}
-// 	subcommand->prefix[j]=NULL;
-// 	if (i==0) {
-// 		//no prefix exists
-// 		subcommand->hasPrefix=0;
-// 	} else {
-// 		//shift non-prefix argvs to the head
-// 		subcommand->hasPrefix=1;
-// 		int m=0;
-// 		while (subcommand->argv[i]!=NULL) {
-// 			subcommand->argv[m]=subcommand->argv[i];
-// 			m++;
-// 			i++;
-// 		}
-// 	subcommand->argv[m]=NULL;
-// 	}
-// }
+void ReadPrefix(struct SubCommand *subcommand) {
+	int i=0;
+	//find if there is a '=' in argv[i]
+	while (subcommand->argv[i]!=NULL && strchr(subcommand->argv[i],'=')!=NULL && *(subcommand->argv[i])!='=') {
+		subcommand->prefix[i]=strdup(subcommand->argv[i]);
+		i++;
+	}
+	subcommand->prefix[i]=NULL;
+	if (i==0) {
+		subcommand->hasPrefix=0;
+	} else {
+		subcommand->hasPrefix=1;
+		int j=0;
+		while (subcommand->argv[i]!=NULL) {
+			subcommand->argv[j]=subcommand->argv[i];
+			j++;
+			i++;
+		}
+	subcommand->argv[j]=NULL;
+	}
+}
 
 void ReadRedirectAndBackground(struct Command *command) {
 	//set new fields to default value;
