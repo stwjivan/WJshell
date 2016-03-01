@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <limits.h>
+#include <signal.h>
 
 #include "cmd_structure.h"
 #include "command.h"
@@ -22,10 +23,16 @@ void print_prompt () {
 
 int main () {
 	char s[300];
+	int status;
+	int pid;
 	struct Command command;
 	while (1) {
 		print_prompt();
 		fgets(s,sizeof s, stdin);
+		//check if there are finished child
+		if ((pid=waitpid(-1,&status,WNOHANG))>0) {
+			printf("[%d] finished\n", pid);
+		}
 		if (strcmp(s,"\n")==0) {
 			continue; //if there is no input,skip reading command
 		}
@@ -111,15 +118,14 @@ int main () {
 					pre_pipein=fds[0];	
 				}	
 				//print the pid if running in the background
-				if(command.background==1 && i==command.num_sub_commands-1) {
-					printf("[%d]\n", pid);					
+				if (command.background==0) {
+					wait(&status);
+				} else {
+					if (i==command.num_sub_commands-1) {
+						printf("[%d]\n", pid);
+					}
 				}
 			}
 		}
-		if (command.background==0) {
-		//if not running in the background, wait for all childs
-			while(wait(NULL)>0);
-		}
 	} 
-
 }
