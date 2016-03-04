@@ -93,7 +93,7 @@ int main () {
 					int fd=open(command.stdout_redirect, O_WRONLY|O_CREAT,0660);
 					if (fd<0) {
 						if (errno==ENOENT) {
-							fprintf(stderr, "%s : Cannot create file\n", command.stdin_redirect);
+							fprintf(stderr, "%s : Cannot create file\n", command.stdout_redirect);
 							exit(1);
 						} else {
 							perror(command.stdout_redirect);
@@ -112,10 +112,8 @@ int main () {
 			} else {
 				//parent process
 				if (command.num_sub_commands>1) {
-					//close the unused pipe port
-					close(fds[1]);
-					//save the pipe input for next fork
-					pre_pipein=fds[0];	
+					close(fds[1]);     //close the unused pipe port
+					pre_pipein=fds[0]; //save the pipe input for next fork	
 				}	
 				//print the pid if running in the background
 				if (command.background==0) {
